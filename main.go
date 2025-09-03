@@ -29,24 +29,22 @@ import (
 
 func main() {
 	// Create byte arrays instead of strings
-	var b1 = []byte{1, 2, 3}
-	var b2 = []byte{4, 5, 6}
-	var b = append(b1, b2...)
+	var s = "Hello World"
+	var ptr = unsafe.StringData(s)
 
-	fmt.Printf("Original byte array: %v\n", b)
+	fmt.Printf("Original byte array: %v\n", ptr)
 
 	// Get pointer to the byte array data
-	dataPtr := unsafe.Pointer(&b[3])
 
 	// Poison the memory region
-	C.poison_memory(dataPtr, C.size_t(len(b)))
+	C.poison_memory((unsafe.Pointer)(ptr), C.size_t(len(s)))
 
 	// Try to access the poisoned memory - this should trigger ASAN
-	fmt.Printf("Accessing poisoned memory: %v\n", *(*byte)(dataPtr))
+	fmt.Printf("Accessing poisoned memory: %v\n", s)
 
 	// Unpoison the memory
-	C.unpoison_memory(dataPtr, C.size_t(len(b)))
+	C.unpoison_memory((unsafe.Pointer)(ptr), C.size_t(len(s)))
 
 	// Access should work now
-	fmt.Printf("After unpoisoning: %v\n", b)
+	fmt.Printf("After unpoisoning: %v\n", s)
 }
