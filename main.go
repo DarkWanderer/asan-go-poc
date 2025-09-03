@@ -1,27 +1,4 @@
 package main
-
-/*
-#cgo CFLAGS: -fsanitize=address
-#cgo LDFLAGS: -fsanitize=address
-#include <sanitizer/asan_interface.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
-// Helper function to poison memory
-void poison_memory(void* ptr, size_t size) {
-    printf("Poisoning memory at %p, size: %zu\n", ptr, size);
-    __asan_poison_memory_region(ptr, size);
-}
-
-// Helper function to unpoison memory
-void unpoison_memory(void* ptr, size_t size) {
-    printf("Unpoisoning memory at %p, size: %zu\n", ptr, size);
-    __asan_unpoison_memory_region(ptr, size);
-}
-
-*/
-import "C"
 import (
 	"fmt"
 	"sync"
@@ -48,7 +25,7 @@ func (bp *BufferPool) Rent() *[BufferSize]byte {
 	select {
 	case buf := <-bp.pool:
 		// Unpoison the buffer before returning it
-		C.unpoison_memory(unsafe.Pointer(buf), C.size_t(BufferSize))
+		unpoisonMemory(unsafe.Pointer(buf), BufferSize)
 		fmt.Printf("Rented buffer at %p (unpoisoned)\n", buf)
 		return buf
 	default:
@@ -66,7 +43,7 @@ func (bp *BufferPool) Return(buf *[BufferSize]byte) {
 	}
 
 	// Poison the buffer before putting it back in the pool
-	C.poison_memory(unsafe.Pointer(buf), C.size_t(BufferSize))
+	poisonMemory(unsafe.Pointer(buf), BufferSize)
 	fmt.Printf("Returned buffer at %p (poisoned)\n", buf)
 
 	select {
