@@ -1,6 +1,8 @@
 package main
 
 /*
+#cgo CFLAGS: -fsanitize=address
+#cgo LDFLAGS: -fsanitize=address
 #include <sanitizer/asan_interface.h>
 #include <stdlib.h>
 #include <string.h>
